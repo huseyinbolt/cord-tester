@@ -192,39 +192,6 @@ node ("${TestNodeName}") {
                     }
                 }
             }
-            stage('Reinstall OLT software') {
-                for(int i=0; i < deployment_config.olts.size(); i++) {
-                    sh returnStdout: true, script: """
-                    sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'dpkg --remove asfvolt16 && dpkg --purge asfvolt16'
-                    """
-                    timeout(5) {
-                        waitUntil {
-                            olt_sw_present = sh returnStdout: true, script: """
-                            sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'dpkg --list | grep asfvolt16 | wc -l'
-                            """
-                            return olt_sw_present.toInteger() == 0
-                        }
-                    }
-                    sh returnStdout: true, script: """
-                    sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} "dpkg --install ${oltDebVersion}"
-                    """
-                    timeout(5) {
-                        waitUntil {
-                            olt_sw_present = sh returnStdout: true, script: """
-                            sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'dpkg --list | grep asfvolt16 | wc -l'
-                            """
-                            return olt_sw_present.toInteger() == 1
-                        }
-                    }
-                    // If the OLT is connected to a 40G switch interface, set the NNI port to be downgraded
-                    if ("${deployment_config.olts[i].fortygig}" != null && "${deployment_config.olts[i].fortygig}" == 'true') {
-                        sh returnStdout: true, script: """
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'echo "port ce128 sp=40000" >> /broadcom/qax.soc'
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} '/opt/bcm68620/svk_init.sh'
-                        """
-                    }
-                }
-            }
             stage('Restart OLT processes') {
                 for(int i=0; i < deployment_config.olts.size(); i++) {
                     timeout(5) {
