@@ -208,7 +208,7 @@ node ("${TestNodeName}") {
                     }
                     timeout(10) {
                         waitUntil {
-                            onu_discovered = sh returnStdout: true, script: "sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'cat /var/log/openolt.log | grep \"oper_state: up\" | wc -l'"
+                            onu_discovered = sh returnStdout: true, script: "sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'cat /broadcom/openolt.log | grep \"onu discover indication\" | wc -l'"
                             echo "ONU Discovered ${onu_discovered}"
                             return onu_discovered.toInteger() > 0
                         }
