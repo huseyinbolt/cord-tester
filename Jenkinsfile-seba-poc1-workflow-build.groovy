@@ -197,13 +197,13 @@ node ("${TestNodeName}") {
                     timeout(5) {
                         sh returnStdout: true, script: """
                         ssh-keyscan -H ${deployment_config.olts[i].ip} >> ~/.ssh/known_hosts
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'service bal_core_dist stop' || true
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'service openolt stop' || true
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} '> /var/log/bal_core_dist.log'
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} '> /var/log/openolt.log'
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'service bal_core_dist start &'
+                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'pkill bal_core_dist' || true
+                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'pkill openolt' || true
+                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} '> /broadcom/bal.log'
+                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} '> /broadcom/openolt.log'
+                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'cd /broadcom; ./bal_core_dist -C :55001 < /dev/tty1 > ./bal.log 2>&1 &'
                         sleep 5
-                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'service openolt start &'
+                        sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'cd /broadcom; ./openolt -C 127.0.0.1:55001 < /dev/tty1 > ./openolt.log 2>&1 &'
                         """
                     }
                     timeout(10) {
