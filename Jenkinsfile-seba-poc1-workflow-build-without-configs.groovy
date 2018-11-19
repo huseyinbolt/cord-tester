@@ -80,34 +80,50 @@ node ("${TestNodeName}") {
                         }
                     }
                 }
-                // stage('Install Logging Infrastructure') {
-                //     timeout(10) {
-                //         sh returnStdout: true, script: """
-                //         export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
-                //         helm dep update logging
-                //         helm install -f examples/logging-single.yaml -n logging logging
-                //         scripts/wait_for_pods.sh
-                //         """
-                //     }
-                // }
-                //stage('Install Monitoring Infrastructure') {
-                //    timeout(10) {
-                //        sh returnStdout: true, script: """
-                //        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
-                //        helm dep update nem-monitoring
-                //        helm install -n nem-monitoring nem-monitoring
-                //        scripts/wait_for_pods.sh
-                //        """
-                //    }
-                //}
+                stage('Install Logging Infrastructure') {
+                    timeout(10) {
+                        sh returnStdout: true, script: """
+                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                        helm dep update logging
+                        helm install -f examples/logging-single.yaml -n logging logging
+                        scripts/wait_for_pods.sh
+                        """
+                    }
+                }
+                stage('Install Monitoring Infrastructure') {
+                    timeout(10) {
+                        sh returnStdout: true, script: """
+                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                        helm dep update nem-monitoring
+                        helm install -n nem-monitoring nem-monitoring
+                        scripts/wait_for_pods.sh
+                        """
+                    }
+                }
+                stage('Install etcd-cluster') {
+                    timeout(10) {
+                        sh returnStdout: true, script: """
+                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                        helm install -f ../${configBaseDir}/${configKubernetesDir}/${configFileName}.yml --version 0.8.0 -n etcd-operator stable/etcd-operator
+                        """
+                    }
+                    timeout(10) {
+                        waitUntil {
+                            etcd_running = sh returnStdout: true, script: """
+                            export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf &&
+                            kubectl get pods | grep etcd | grep -i running | grep 1/1 | wc -l
+                            """
+                            return etcd_running.toInteger() == 3
+                        }
+                    }
+                }
                 stage('Install voltha') {
                     timeout(10) {
                         sh returnStdout: true, script: """
                         export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
                         helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
                         helm dep build voltha
-                        helm install -n voltha -f ../${configBaseDir}/${configKubernetesDir}/${configFileName}.yml --set etcd-operator.customResources.createEtcdClusterCRD=false voltha
-                        helm upgrade -f ../${configBaseDir}/${configKubernetesDir}/${configFileName}.yml --set etcd-operator.customResources.createEtcdClusterCRD=true voltha ./voltha
+                        helm install -n voltha -f ../${configBaseDir}/${configKubernetesDir}/${configFileName}.yml voltha
                         """
                     }
                     timeout(10) {
@@ -206,7 +222,7 @@ node ("${TestNodeName}") {
                         sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'service openolt start &'
                         """
                     }
-                    timeout(10) {
+                    timeout(15) {
                         waitUntil {
                             onu_discovered = sh returnStdout: true, script: "sshpass -p ${deployment_config.olts[i].pass} ssh -l ${deployment_config.olts[i].user} ${deployment_config.olts[i].ip} 'cat /var/log/openolt.log | grep \"oper_state: up\" | wc -l'"
                             echo "ONU Discovered ${onu_discovered}"
