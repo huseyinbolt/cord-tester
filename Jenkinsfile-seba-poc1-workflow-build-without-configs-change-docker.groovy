@@ -135,6 +135,15 @@ node ("${TestNodeName}") {
                         return true
                     }
                 }
+                stage('Change vOLTHA-vCli Repo') {
+                    timeout(10) {
+                        sh returnStdout: true, script: """
+							export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+							sed -i.bak "s/voltha\\/voltha-cli/192.168.45.29:5000\\/voltha\\/voltha-cli/g" voltha/values.yaml 
+							"""
+                        return true
+                    }
+                }
                 stage('Install voltha') {
                     timeout(10) {
                         sh returnStdout: true, script: """
