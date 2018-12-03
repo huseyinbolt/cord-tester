@@ -80,26 +80,6 @@ node ("${TestNodeName}") {
                         }
                     }
                 }
-                stage('Install Logging Infrastructure') {
-                    timeout(10) {
-                        sh returnStdout: true, script: """
-                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
-                        helm dep update logging
-                        helm install -f examples/logging-single.yaml -n logging logging
-                        scripts/wait_for_pods.sh
-                        """
-                    }
-                }
-                stage('Install Monitoring Infrastructure') {
-                    timeout(10) {
-                        sh returnStdout: true, script: """
-                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
-                        helm dep update nem-monitoring
-                        helm install -n nem-monitoring nem-monitoring
-                        scripts/wait_for_pods.sh
-                        """
-                    }
-                }
                 stage('Install etcd-cluster') {
                     timeout(10) {
                         sh returnStdout: true, script: """
@@ -205,19 +185,6 @@ node ("${TestNodeName}") {
                             """
                             return xos_core_completed.toInteger() == 6
                         }
-                    }
-                }
-                stage('Change ONOS OAR Repo') {
-                    timeout(10) {
-                        sh returnStdout: true, script: """
-							export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
-							sed -i.bak '/aaaAppUrl/c\\aaaAppUrl: "http://192.168.45.29:8080/repository/seba/onos/aaa/1.8.0-SNAPSHOT/aaa-1.8.0-20181129.055735-1.oar"' xos-profiles/att-workflow/values.yaml
-                            sed -i.bak '/oltAppUrl/c\\oltAppUrl: "http://192.168.45.29:8080/repository/seba/onos/olt-app/2.1.0-SNAPSHOT/olt-app-2.1.0-20181129.055807-1.oar"' xos-profiles/att-workflow/values.yaml
-                            sed -i.bak '/sadisAppUrl/c\\sadisAppUrl: "http://192.168.45.29:8080/repository/seba/onos/sadis-app/3.0.0-SNAPSHOT/sadis-app-3.0.0-20181129.055818-1.oar"' xos-profiles/att-workflow/values.yaml
-                            sed -i.bak '/dhcpl2relayAppUrl/c\\dhcpl2relayAppUrl: "http://192.168.45.29:8080/repository/seba/onos/dhcpl2relay/1.5.0-SNAPSHOT/dhcpl2relay-1.5.0-20181129.055745-1.oar"' xos-profiles/att-workflow/values.yaml
-                            sed -i.bak '/kafkaAppUrl/c\\kafkaAppUrl: "http://192.168.45.29:8080/repository/seba/onos/kafka/1.0.0-SNAPSHOT/kafka-1.0.0-20181129.055757-1.oar"' xos-profiles/att-workflow/values.yaml  
-							"""
-                        return true
                     }
                 }
                 stage('Install att-workflow') {
