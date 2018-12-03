@@ -15,6 +15,12 @@
 node ("${TestNodeName}") {
     timeout (100) {
         try {
+            stage ("Parse deployment configuration file") {
+                sh returnStdout: true, script: "rm -rf ${configBaseDir}"
+                //sh returnStdout: true, script: "git clone -b ${branch} ${cordRepoUrl}/${configBaseDir}"
+                sh returnStdout: true, script: "git clone https://github.com/huseyinbolt/pod-configs"
+                deployment_config = readYaml file: "${configBaseDir}/${configDeploymentDir}/${configFileName}.yaml"
+            }
             dir ("helm-charts") {
                 stage('Change ONOS OAR ') {
                     timeout(10) {
@@ -24,14 +30,16 @@ node ("${TestNodeName}") {
                         sleep 2
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.dhcpl2relay"
                         sleep 2
-                        kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.config"
-                        sleep 2
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.aaa"
                         sleep 2
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.olt"
                         sleep 2
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.sadis"
                         sleep 2
+                        kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.config"
+                        sleep 2
+                        
+                        
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/cord-config-1.5.0-SNAPSHOT.oar"
                         sleep 2
@@ -130,6 +138,17 @@ node ("${TestNodeName}") {
                             }
                         }
                     }
+                }
+            }
+            stage('vOLT Add Subscriber Flows') {
+                timeout(5) {
+                    sh returnStdout: true, script: """
+                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                        ssh-keyscan -p 30115 -H 192.168.70.21 >> ~/.ssh/known_hosts
+                        sleep 1m
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'volt-add-subscriber-access ${oltDpID} ${ontUniPort}'
+                        """
+                    return true
                 }
             }
             stage('Configure Host PPPOE') {
