@@ -22,59 +22,72 @@ node ("${TestNodeName}") {
                 deployment_config = readYaml file: "${configBaseDir}/${configDeploymentDir}/${configFileName}.yaml"
             }
             dir ("helm-charts") {
+                stage('Push pppoe-oar to ONOS') {
+                    timeout(5) {
+                        sh returnStdout: true, script: """
+                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                        export onosDockerName=`kubectl get pods |grep onos|grep -v att|cut -d " " -f1`
+                        echo \$onosDockerName
+                        kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "rm /home/sdn/oars/tt-pppoe-1.0.0-SNAPSHOT.oar"
+                        kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "ls /home/sdn/oars/" 
+                        kubectl cp ../pod-configs/tosca-configs/att-workflow/tt-pppoe-1.0.0-SNAPSHOT.oar \$onosDockerName:/home/sdn/oars/.                     
+                        """
+                        return true
+                    }
+                }
                 stage('Change ONOS OAR ') {
                     timeout(10) {
                         sh returnStdout: true, script: """
                         export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.kafka"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.dhcpl2relay"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.aaa"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.olt"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.sadis"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost uninstall org.opencord.config"
-                        sleep 2
+                        sleep 10
                         
                         
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/cord-config-1.5.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.config"
-                        sleep 2
+                        sleep 10
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/sadis-app-3.0.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.sadis"
-                        sleep 2
+                        sleep 10
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/olt-app-2.1.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.olt"
-                        sleep 2
+                        sleep 10
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/aaa-1.8.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.aaa"
-                        sleep 2
+                        sleep 10
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/tt-pppoe-1.0.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.tt-pppoe"
-                        sleep 2
+                        sleep 10
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/dhcpl2relay-1.5.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.dhcpl2relay"
-                        sleep 2
+                        sleep 10
                         
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost install /home/sdn/oars/kafka-1.0.0-SNAPSHOT.oar"
-                        sleep 2
+                        sleep 10
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "bin/onos-app localhost activate org.opencord.kafka"
-						sleep 2
+						sleep 10
 						"""
                         return true
                     }
