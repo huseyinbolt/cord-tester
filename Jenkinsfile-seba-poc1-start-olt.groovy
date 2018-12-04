@@ -97,6 +97,15 @@ node ("${TestNodeName}") {
                         }
                     }
                 }
+                stage('Change vOLTHA Santa Clara Repo') {
+                    timeout(10) {
+                        sh returnStdout: true, script: """
+							export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                            sed -i.bak '/appVersion/c\\appVersion: latest' voltha/Chart.yaml
+							"""
+                        return true
+                    }
+                }
                 stage('Change vOLTHA-vCore Repo') {
                     timeout(10) {
                         sh returnStdout: true, script: """
