@@ -30,7 +30,8 @@ node ("${TestNodeName}") {
                         echo \$onosDockerName
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "rm /home/sdn/oars/tt-pppoe-1.0.0-SNAPSHOT.oar"
                         kubectl exec `kubectl get pods |grep onos|grep -v att|cut -d " " -f1` -- bash -c "ls /home/sdn/oars/" 
-                        kubectl cp ../pod-configs/tosca-configs/att-workflow/tt-pppoe-1.0.0-SNAPSHOT.oar \$onosDockerName:/home/sdn/oars/.                     
+                        kubectl cp ../pod-configs/tosca-configs/att-workflow/tt-pppoe-1.0.0-SNAPSHOT.oar \$onosDockerName:/home/sdn/oars/.
+                        sleep 10                     
                         """
                         return true
                     }
