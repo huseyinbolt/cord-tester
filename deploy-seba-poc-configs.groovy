@@ -165,14 +165,31 @@ node ("${TestNodeName}") {
                     return true
                 }
             }
-            stage('Configure Host PPPOE') {
+            stage('Configure Alpha CPE PPPOE') {
                 timeout(5) {
                     sh returnStdout: true, script: """
                         export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
                         ssh-keyscan -p 30115 -H 192.168.70.21 >> ~/.ssh/known_hosts
                         sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager bngConnectPort ${bngConnectPort}'
                         sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager deviceId ${deviceId}'
-                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager pppoeEndpointMacAddress ${pppoeEndpointMacAddress}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager pppoeEndpointMacAddress ${pppoeEndpointMacAddress_alp}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager bngMacAddress ${bngMacAddress}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager stag ${stag}'
+                        sleep 2
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'pppoe'
+                        sleep 10
+                        """
+                    return true
+                }
+            }
+            stage('Configure Iskratel CPE PPPOE') {
+                timeout(5) {
+                    sh returnStdout: true, script: """
+                        export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
+                        ssh-keyscan -p 30115 -H 192.168.70.21 >> ~/.ssh/known_hosts
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager bngConnectPort ${bngConnectPort}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager deviceId ${deviceId}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager pppoeEndpointMacAddress ${pppoeEndpointMacAddress_isk}'
                         sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager bngMacAddress ${bngMacAddress}'
                         sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'cfg set org.onosproject.pppoe.PppoeManager stag ${stag}'
                         sleep 2
