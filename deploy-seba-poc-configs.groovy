@@ -160,7 +160,8 @@ node ("${TestNodeName}") {
                         export KUBECONFIG=$WORKSPACE/${configBaseDir}/${configKubernetesDir}/${configFileName}.conf
                         ssh-keyscan -p 30115 -H 192.168.70.21 >> ~/.ssh/known_hosts
                         sleep 1m
-                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'volt-add-subscriber-access ${oltDpID} ${ontUniPort}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'volt-add-subscriber-access ${oltDpID} ${ontUniPort_alp}'
+                        sshpass -p rocks ssh -p 30115  onos@192.168.70.21 'volt-add-subscriber-access ${oltDpID} ${ontUniPort_isk}'
                         """
                     return true
                 }
